@@ -1,0 +1,45 @@
+# Core Frameworks
+langchain>=0.1.20
+langchain_community
+llama-index>=0.10.30
+chromadb>=0.4.21
+openai>=1.30.0
+transformers>=4.41.0
+torch>=2.2.2
+fastapi>=0.110.0
+uvicorn>=0.29.0
+gradio>=4.33.2
+diffusers>=0.27.2
+pillow>=10.3.0
+
+
+# Multi-Agent & Workflow
+crewai>=0.28.8
+autogenstudio>=0.1.14
+langgraph>=0.0.38
+replicate
+langchain-openai
+
+# Utilities
+python-dotenv>=1.0.1
+tqdm>=4.66.4
+rich>=13.7.1
+loguru>=0.7.2
+requests>=2.31.0
+sqlalchemy>=2.0.30
+sqlite-utils>=3.36
+pytest>=8.2.2
+debugpy>=1.8.1
+
+# Vector Store Support (Optional)
+faiss-cpu>=1.8.0
+weaviate-client>=4.6.4
+sentence_transformers
+unstructured
+
+# Visualization & Notebook
+jupyter>=1.0.0
+nbconvert>=7.16.4
+matplotlib>=3.9.0
+gradio
+
