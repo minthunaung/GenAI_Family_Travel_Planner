@@ -1,123 +1,123 @@
-ïArchitecture overview
-    ï	Conversational & Multi-Agent handling: 
-    ?	Modular, agent-based system orchestrated by LangGraph with conditions and LLM router for agent task distributions
-    ?	Central state model (HybridState) holds conversation context, history, memory logs, and intermediate data
-    ?	Agents implemented as RunnableLambda functions perform discrete tasks
-    ï	RAG-based Document QA agent: 
-    ?	RAG storage, retrieval with FAISS + OpenAIEmbeddings and recommendation with LLM
-    ï	Text-to-Image Generation Agent
-    ?	Photo idea generation based on user profile, activity, location, weather and image creation with OPENAI
-    ï	SQLite Agent:
-    ?	Save user profile to from user prompt with llm
-    ï	Weather Agent: 
-    ?	Location extraction with LLM and weather checking
-    ï	Summary Agent: 
-    ?	Summarization, memory logging and exception handling
-    ï	Chat Interface:
-    ?	Gradio for Chat interface
-    ï	LLM:
-    ?	OPEN APIs for natural-language and visual outputs
+‚Ä¢Architecture overview 
+    ‚Ä¢	Conversational & Multi-Agent handling: 
+		‚Ä¢	Modular, agent-based system orchestrated by LangGraph with conditions and LLM router for agent task distributions
+		‚Ä¢	Central state model (HybridState) holds conversation context, history, memory logs, and intermediate data
+		‚Ä¢	Agents implemented as RunnableLambda functions perform discrete tasks
+    ‚Ä¢	RAG-based Document QA agent: 
+		‚Ä¢	RAG storage, retrieval with FAISS + OpenAIEmbeddings and recommendation with LLM
+		‚Ä¢	Text-to-Image Generation Agent
+		‚Ä¢	Photo idea generation based on user profile, activity, location, weather and image creation with OPENAI
+    ‚Ä¢	SQLite Agent:
+    ‚Ä¢		Save user profile to from user prompt with llm
+    ‚Ä¢	Weather Agent: 
+    ‚Ä¢		Location extraction with LLM and weather checking
+    ‚Ä¢	Summary Agent: 
+		‚Ä¢ Summarization, memory logging and exception handling
+    ‚Ä¢	Chat Interface:
+		‚Ä¢	Gradio for Chat interface
+    ‚Ä¢	LLM:
+		‚Ä¢	OPEN APIs for natural-language and visual outputs
 
-ïKey implementation and decisions
-    ï	Router dispatches to one of six entry nodes based on state.next.
-    ï	seed_data & create_rag shortcut directly to Summarize.
-    ï	fetch_family kicks off the RAG?recommendation?location?weather?photo subflow.
-    ï	weather_check branches: ìweatherî queries go straight to summary, others go to photo_memory.
-    ï	photo_memory then either invokes photo_generate (if a ìphotoî request) or ends in Summarize.
-    ï	Summarize is the single finish point across all paths.
+‚Ä¢Key implementation and decisions
+    ‚Ä¢	Router dispatches to one of six entry nodes based on state.next.
+    ‚Ä¢	seed_data & create_rag shortcut directly to Summarize.
+    ‚Ä¢	fetch_family kicks off the RAG?recommendation?location?weather?photo subflow.
+    ‚Ä¢	weather_check branches: ‚Äúweather‚Äù queries go straight to summary, others go to photo_memory.
+    ‚Ä¢	photo_memory then either invokes photo_generate (if a ‚Äúphoto‚Äù request) or ends in Summarize.
+    ‚Ä¢	Summarize is the single finish point across all paths.
     Router
-    +- seed_data #Userprompt: Iím 42óinto museums and food. My wife is 40, she likes the beach and shopping. Our son is 12, loves video games and drawing. My daughter is 10, like to play at beach and love animals.
-    ¶   +- Summarize (end)
-    ¶
+    +- seed_data #Userprompt: I‚Äôm 42‚Äîinto museums and food. My wife is 40, she likes the beach and shopping. Our son is 12, loves video games and drawing. My daughter is 10, like to play at beach and love animals.
+    ¬¶   +- Summarize (end)
+    ¬¶
     +- create_rag #Userprompt: Please ingest the TripAdvisor URL https://www.klook.com/en-SG/blog/cheapest-holidays-from-singapore/
-    ¶   +- Summarize (end) 
-    ¶
+    ¬¶   +- Summarize (end) 
+    ¬¶
     +- fetch_family #Userprompt: Plan a family trip
-    ¶   +- rag_retrieve
-    ¶       +- rag_recommend
-    ¶           +- extract_location
-    ¶               +- weather_check
-    ¶                   +- if ìweatherî in input ? Summarize (end)
-    ¶                   +- else ? photo_memory
-    ¶                        +- if ìphotoî in input ? photo_generate
-    ¶                        ¶    +- Summarize (end)
-    ¶                        +- else ? Summarize (end)
-    ¶
+    ¬¶   +- rag_retrieve
+    ¬¶       +- rag_recommend
+    ¬¶           +- extract_location
+    ¬¶               +- weather_check
+    ¬¶                   +- if ‚Äúweather‚Äù in input ? Summarize (end)
+    ¬¶                   +- else ? photo_memory
+    ¬¶                        +- if ‚Äúphoto‚Äù in input ? photo_generate
+    ¬¶                        ¬¶    +- Summarize (end)
+    ¬¶                        +- else ? Summarize (end)
+    ¬¶
     +- extract_location #Userprompt: How is the weather there?
-    ¶   +- weather_check  ? (same as above under fetch_family)
-    ¶
+    ¬¶   +- weather_check  ? (same as above under fetch_family)
+    ¬¶
     +- photo_memory # Userprompt: Where can I take good photo there?
-    ¶   +- photo_generate
-    ¶        +- Summarize (end)
-    ¶
+    ¬¶   +- photo_generate
+    ¬¶        +- Summarize (end)
+    ¬¶
     +- summarize (end)
 
-ïHow to start?
+‚Ä¢How to start?
 
 1.	Make sure all API keys are available as per utils/config.py.               
 2.	Run all cells with notebooks/FamilyTravelPlannerv3.ipynb.
 
     family_travel_planner/	 	# project_root
     +-- notebooks/  
-    ¶   +-- FamilyTravelPlanner.ipynb #V1: Test all codes in one notebook
-    ¶   +-- FamilyTravelPlannerv2.ipynb #V2: Group code as per function in specific folders, handle 3 prompts (Plan,Photo,Weather)
-    ¶   +-- FamilyTravelPlannerv3.ipynb #V3: Final version with Gradio to handle User prompts: Register Users, Rag upload, Plan,Photo,Weather etc.
+    ¬¶   +-- FamilyTravelPlanner.ipynb #V1: Test all codes in one notebook
+    ¬¶   +-- FamilyTravelPlannerv2.ipynb #V2: Group code as per function in specific folders, handle 3 prompts (Plan,Photo,Weather)
+    ¬¶   +-- FamilyTravelPlannerv3.ipynb #V3: Final version with Gradio to handle User prompts: Register Users, Rag upload, Plan,Photo,Weather etc.
     +-- controller/  
-    ¶   +-- shared_types.py       # HybridState Pydantic model  
-    ¶   +-- controller.py         # Gradio integration and main loop  
+    ¬¶   +-- shared_types.py       # HybridState Pydantic model  
+    ¬¶   +-- controller.py         # Gradio integration and main loop  
     +-- agents/  
-    ¶   +-- llm_router_agent.py    # Agent task distributions
-    ¶   +-- seed_data_agent.py     # User profile update to SQL with LLM
-    ¶   +-- fetch_family_agent.py  # User profile retrieval from SQL 
-    ¶   +-- sql_agents.py  	# Query SQL 
-    ¶   +-- create_rag_agents.py   # create rag DB from URL or PDF with LLM  
-    ¶   +-- rag_agents.py          # retrieval from RAG  
-    ¶   +-- recommender_agents.py  # Trip recommendation  
-    ¶   +-- extract_location_agent.py      # extract location with LLM  
-    ¶   +-- weather_agent.py       # get weather + check weather   
-    ¶   +-- photo_memory_agent.py  # Users SQL + location + weather 
-    ¶   +-- photo_generation_agent.py  #Generate photo
-    ¶   +-- summarize_agent.py     #handle Trip,Photo,Weather & fallback
+    ¬¶   +-- llm_router_agent.py    # Agent task distributions
+    ¬¶   +-- seed_data_agent.py     # User profile update to SQL with LLM
+    ¬¶   +-- fetch_family_agent.py  # User profile retrieval from SQL 
+    ¬¶   +-- sql_agents.py  	# Query SQL 
+    ¬¶   +-- create_rag_agents.py   # create rag DB from URL or PDF with LLM  
+    ¬¶   +-- rag_agents.py          # retrieval from RAG  
+    ¬¶   +-- recommender_agents.py  # Trip recommendation  
+    ¬¶   +-- extract_location_agent.py      # extract location with LLM  
+    ¬¶   +-- weather_agent.py       # get weather + check weather   
+    ¬¶   +-- photo_memory_agent.py  # Users SQL + location + weather 
+    ¬¶   +-- photo_generation_agent.py  #Generate photo
+    ¬¶   +-- summarize_agent.py     #handle Trip,Photo,Weather & fallback
     +-- utils/  
-    ¶   +-- config.py             # API keys, DB/RAG paths  
-    ¶   +-- rag_utils.py          # ingest_documents  
-    ¶   +-- utils.py              # load User from SQL  
+    ¬¶   +-- config.py             # API keys, DB/RAG paths  
+    ¬¶   +-- rag_utils.py          # ingest_documents  
+    ¬¶   +-- utils.py              # load User from SQL  
     +-- travelguide/  
-    ¶   +-- Americas_compressed.pdf    # travel brochure
+    ¬¶   +-- Americas_compressed.pdf    # travel brochure
     +-- scripts/  
-    ¶   +-- create_rag.py             # standalone RAG ingestion script  
-    ¶   +-- create_database.py        # standalone create db script  
-    ¶   +-- seed_data.py              # standalone SQL update script  
+    ¬¶   +-- create_rag.py             # standalone RAG ingestion script  
+    ¬¶   +-- create_database.py        # standalone create db script  
+    ¬¶   +-- seed_data.py              # standalone SQL update script  
     +-- image_gen/  
-    ¶   +-- image_generator.py    # display as small 512x512 image in notebook  
+    ¬¶   +-- image_generator.py    # display as small 512x512 image in notebook  
     +-- family_travel_planner.db  # SQLite family_members table  
     +-- family_travel_rag.index   # RAG FAISS DB  
     +-- session_state.json        # persisted HybridState
 
-ïDebugging and testing process
-    ï	Added debug flag with print() statements around each LLM call and database operation. 
-    ï	Verified agent return types using standalone unit tests before wiring into LangGraph
-    ï	Asserted all agent-builder functions return callables to catch NoneType errors
-    ï	Inspected raw OpenAI responses and JSON parsing steps to resolve silent failures
-    ï	Migrated Pydanticís dict() ? model_dump() to suppress deprecation warnings
+‚Ä¢Debugging and testing process
+    ‚Ä¢	Added debug flag with print() statements around each LLM call and database operation. 
+    ‚Ä¢	Verified agent return types using standalone unit tests before wiring into LangGraph
+    ‚Ä¢	Asserted all agent-builder functions return callables to catch NoneType errors
+    ‚Ä¢	Inspected raw OpenAI responses and JSON parsing steps to resolve silent failures
+    ‚Ä¢	Migrated Pydantic‚Äôs dict() ? model_dump() to suppress deprecation warnings
     
-ïChallenges faced and how they were resolved
-    ï	Missing HybridState imports in agent modules due to recursive call from controller
-    ?	Fixed by placing HybridState in shared_types and call by agents, controller
-    ï	Agents not returning state after LLM hang
-    ?	Instrumented try/except with verbose logging and ensured final return state
-    ï	Graph builder returning None
-    ?	Added sanity assertions to confirm each builder returns a compiled graph
-    ï	Pydantic schema mismatches on load_state
-    ?	Added default field fallbacks and validation error handling for robust state loading
-    ï	Gradio history format mismatch
-    ?	Refactored chat_interface to return only assistant messages; let Gradio manage history
+‚Ä¢Challenges faced and how they were resolved
+    ‚Ä¢	Missing HybridState imports in agent modules due to recursive call from controller
+		‚Ä¢	Fixed by placing HybridState in shared_types and call by agents, controller
+    ‚Ä¢	Agents not returning state after LLM hang
+		‚Ä¢	Instrumented try/except with verbose logging and ensured final return state
+    ‚Ä¢	Graph builder returning None
+		‚Ä¢	Added sanity assertions to confirm each builder returns a compiled graph
+    ‚Ä¢	Pydantic schema mismatches on load_state
+		‚Ä¢	Added default field fallbacks and validation error handling for robust state loading
+    ‚Ä¢	Gradio history format mismatch
+		‚Ä¢	Refactored chat_interface to return only assistant messages; let Gradio manage history
 
-ïFuture Improvements
-    ï	Different debug mode: To log different level of logging to understand the problem better. E.g. Variable/State before/after call.
-    ï	API calls: Save cost with  repeated API call in requests_cache. e.g. weather lookups for the same location.
-    ï	Contextual memory compression: periodically summarize history for cost-efficient prompts
-    ï	Multi-destination loop: plan, check weather, and summarize per location in a subgraph
-    ï	User profile management: persist user preferences and session metadata across days
-    ï	GUI enhancements: image previews, clickable itinerary links, exportable PDF reports
-    ï	Error-handling UI: interactive prompts to correct malformed LLM outputs before seeding or ingestion
+‚Ä¢Future Improvements
+    ‚Ä¢	Different debug mode: To log different level of logging to understand the problem better. E.g. Variable/State before/after call.
+    ‚Ä¢	API calls: Save cost with  repeated API call in requests_cache. e.g. weather lookups for the same location.
+    ‚Ä¢	Contextual memory compression: periodically summarize history for cost-efficient prompts
+    ‚Ä¢	Multi-destination loop: plan, check weather, and summarize per location in a subgraph
+    ‚Ä¢	User profile management: persist user preferences and session metadata across days
+    ‚Ä¢	GUI enhancements: image previews, clickable itinerary links, exportable PDF reports
+    ‚Ä¢	Error-handling UI: interactive prompts to correct malformed LLM outputs before seeding or ingestion
